@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; script-src-attr 'unsafe-hashes' 'sha256-MhtPZXr7+LpJUY5qtMutB+qWfQtMaPccfe7QXtCcEYc='; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; base-uri 'none'; object-src 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F1F5F9">
+  <meta name="color-scheme" content="light">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="description" content="UniPool: microcréditos P2P y fondo de cobertura para estudiantes universitarios. Prototipo académico con saldos simulados.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_CO">
+  <meta property="og:site_name" content="UniPool">
+  <meta property="og:title" content="UniPool | Microcréditos estudiantiles">
+  <meta property="og:description" content="Microcréditos P2P y fondo de cobertura para estudiantes universitarios. Prototipo académico con saldos simulados.">
+  <meta name="twitter:card" content="summary">
+  <title>UniPool | Microcréditos estudiantiles</title>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='14' fill='%230F2942'/%3E%3Cpath d='M15 12v14a9 9 0 0 0 18 0V12' fill='none' stroke='%2334D399' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='19' r='3.6' fill='%23fff'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap"></noscript>
+
+  <link rel="stylesheet" href="styles.css">
+
+  <link rel="modulepreload" href="./js/state.js">
+  <link rel="modulepreload" href="./js/score.js">
+  <link rel="modulepreload" href="./js/auth.js">
+  <link rel="modulepreload" href="./js/loans.js">
+  <script type="module" src="./js/ui.js"></script>
+</head>
+<body>
+
+  <div id="phone-frame" class="phone-frame">
+
+    <div id="boot-screen" class="boot-screen" role="status" aria-live="polite">
+      <svg class="brand-logo" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <rect class="logo-bg" width="48" height="48" rx="14"/>
+        <path class="logo-u" d="M15 12v14a9 9 0 0 0 18 0V12"/>
+        <circle class="logo-coin" cx="24" cy="19" r="3.6"/>
+      </svg>
+      <p class="boot-title">UniPool</p>
+      <span class="boot-spinner" aria-hidden="true"></span>
+      <p class="boot-text">Verificando tu sesión...</p>
+      <p class="boot-fallback">
+        No se pudo iniciar UniPool. Recarga la página. Si abriste el archivo con doble clic (<code>file://</code>),
+        ejecútalo con Live Server o con <code>python -m http.server</code> y entra por <code>http://localhost</code>.
+      </p>
+    </div>
+
+    <noscript>
+      <div class="noscript-warning" role="alert">
+        <strong>UniPool necesita JavaScript.</strong>
+        Habilítalo en tu navegador y recarga la página.
+      </div>
+    </noscript>
+
+    <main id="app-container" class="app-container">
+
+      <section id="screen-login" class="app-screen hidden" aria-labelledby="brand-title">
+
+        <div class="auth-brand">
+          <svg class="brand-logo" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+            <rect class="logo-bg" width="48" height="48" rx="14"/>
+            <path class="logo-u" d="M15 12v14a9 9 0 0 0 18 0V12"/>
+            <circle class="logo-coin" cx="24" cy="19" r="3.6"/>
+          </svg>
+          <h1 id="brand-title">UniPool</h1>
+          <p class="auth-tagline">Fintech estudiantil</p>
+        </div>
+
+        <div class="auth-card">
+
+          <div class="segmented-control auth-tabs" role="tablist" aria-label="Acceso a UniPool">
+            <button class="chip-btn" id="tab-login" type="button" role="tab" aria-selected="false" aria-controls="form-login" data-auth-tab="login">Iniciar sesión</button>
+            <button class="chip-btn active" id="tab-register" type="button" role="tab" aria-selected="true" aria-controls="form-register" data-auth-tab="register">Crear cuenta</button>
+          </div>
+
+          <form id="form-login" class="auth-form hidden" data-auth-form="login" role="tabpanel" aria-labelledby="tab-login" novalidate hidden>
+            <h2 class="auth-heading">Qué bueno verte</h2>
+            <p class="muted auth-intro">Ingresa con tu correo institucional.</p>
+
+            <p class="demo-hint hidden" id="demo-hint">
+              <span class="demo-hint-label">Cuenta de demostración</span>
+              <span class="demo-hint-data"><b id="demo-email"></b> · <b id="demo-password"></b></span>
+              <button class="link-btn" type="button" data-action="fill-demo">Autocompletar</button>
+            </p>
+
+            <div class="input-group">
+              <label for="login-email">Correo universitario</label>
+              <input id="login-email" name="email" type="email" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="254" placeholder="nombre@universidad.edu.co" required>
+            </div>
+
+            <div class="input-group">
+              <label for="login-password">Contraseña</label>
+              <input id="login-password" name="password" type="password" autocomplete="current-password" maxlength="128" placeholder="••••••••" required>
+            </div>
+
+            <p class="form-error hidden" id="login-error" role="alert"></p>
+            <button class="btn-primary" type="submit">Iniciar sesión</button>
+          </form>
+
+          <form id="form-register" class="auth-form" data-auth-form="register" role="tabpanel" aria-labelledby="tab-register" novalidate>
+            <h2 class="auth-heading">Únete a UniPool</h2>
+            <p class="muted auth-intro">Crea una cuenta con tu correo universitario.</p>
+
+            <div class="input-group">
+              <label for="reg-name">Nombre completo</label>
+              <input id="reg-name" name="name" type="text" autocomplete="name" maxlength="60" placeholder="Carlos Pacheco" required>
+            </div>
+
+            <div class="input-group">
+              <label for="reg-email">Correo universitario</label>
+              <input id="reg-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254" placeholder="nombre@universidad.edu.co" required>
+            </div>
+
+            <div class="input-group">
+              <label for="reg-password">Contraseña (mínimo 6 caracteres)</label>
+              <input id="reg-password" name="password" type="password" autocomplete="new-password" minlength="6" maxlength="128" placeholder="••••••••" required>
+            </div>
+
+            <p class="form-error hidden" id="register-error" role="alert"></p>
+            <button class="btn-primary" type="submit">Crear cuenta</button>
+          </form>
+        </div>
+
+        <p class="auth-note">Admite correos institucionales con dominio .edu o .edu.co.</p>
+
+        <aside class="notice-card" aria-label="Aviso del prototipo">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
+          <p>
+            <strong>Prototipo académico.</strong> Los saldos y pagos son simulados: no se mueve dinero real.
+            Tus datos se guardan solo en este navegador y no se envían a ningún servidor.
+            No uses una contraseña de otros sitios.
+          </p>
+        </aside>
+      </section>
+
+      <div id="app-view" class="app-view hidden">
+
+        <header class="topbar">
+          <div class="topbar-brand">
+            <svg class="brand-logo brand-logo--sm" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+              <rect class="logo-bg" width="48" height="48" rx="14"/>
+              <path class="logo-u" d="M15 12v14a9 9 0 0 0 18 0V12"/>
+              <circle class="logo-coin" cx="24" cy="19" r="3.6"/>
+            </svg>
+            <span>UniPool</span>
+          </div>
+          <div class="topbar-user">
+            <span id="header-name" class="topbar-name"></span>
+            <button id="profile-shortcut" class="avatar-btn" type="button" data-navigate="profile" aria-label="Abrir mi perfil">
+              <span id="header-avatar">U</span>
+            </button>
+          </div>
+        </header>
+
+        <section class="screen is-current" id="screen-home" data-screen="home" aria-labelledby="home-title">
+          <div class="greeting">
+            <p class="muted">Tu vida universitaria, más simple</p>
+            <h1 id="home-title">Hola, <span id="welcome-name"></span></h1>
+          </div>
+
+          <article class="card-balance" aria-label="Resumen de tu cuenta">
+            <div class="balance-top">
+              <span class="balance-label">Cupo disponible</span>
+              <span class="badge-score">Score <span id="home-score">4.5</span> / 5.0
+                <svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/></svg>
+              </span>
+            </div>
+            <p class="balance-amount" id="home-limit">$0</p>
+            <p class="balance-caption">Microcrédito educativo inmediato</p>
+            <div class="wallet-line">
+              <span>Saldo en billetera demo</span>
+              <b id="home-wallet">$0</b>
+            </div>
+          </article>
+
+          <div class="actions-grid">
+            <button class="action-card" type="button" data-navigate="loan">
+              <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 17v3h14v-3"/></svg></span>
+              <strong>Pedir préstamo</strong>
+              <small>Desde $10.000</small>
+            </button>
+            <button class="action-card" type="button" data-navigate="fund">
+              <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-8 0"/><path d="M4 20c.7-3 3-5 8-5s7.3 2 8 5"/><path d="m8 11 2 2 4-4"/></svg></span>
+              <strong>Ver solicitudes</strong>
+              <small>Apoya a estudiantes</small>
+            </button>
+          </div>
+
+          <section class="dashboard-requests" aria-labelledby="my-requests-title">
+            <h2 class="section-title" id="my-requests-title">Mis solicitudes pendientes</h2>
+            <div id="my-request-list" class="request-list"></div>
+          </section>
+
+          <section aria-labelledby="activity-title">
+            <h2 class="section-title" id="activity-title">Actividad reciente</h2>
+            <div id="activity-list" class="activity-list">
+              <p class="empty-state">Aún no tienes actividad reciente.</p>
+            </div>
+          </section>
+        </section>
+
+        <section class="screen hidden" id="screen-loan" data-screen="loan" aria-labelledby="loan-title" hidden>
+          <header class="screen-head">
+            <p class="eyebrow">Microcrédito</p>
+            <h1 class="screen-title" id="loan-title">Solicitar crédito</h1>
+            <p class="muted screen-lead">Elige cuánto necesitas y cuándo puedes pagarlo.</p>
+          </header>
+
+          <form id="loan-form" novalidate>
+            <article class="card amount-card">
+              <label class="field-label" for="loan-amount">Monto solicitado (COP)</label>
+              <output id="amount-output" class="amount-output" for="loan-amount">$10.000</output>
+              <input type="range" id="loan-amount" name="amount" min="10000" max="100000" step="1000" value="10000" aria-describedby="range-scale">
+              <div class="range-scale" id="range-scale">
+                <span>$10.000</span>
+                <span>Cupo: <b id="limit-label">$100.000</b></span>
+              </div>
+            </article>
+
+            <fieldset class="input-group term-fieldset">
+              <legend>Plazo de pago</legend>
+              <div class="segmented-control term-options">
+                <label class="chip-btn active"><input type="radio" name="term" value="7" checked><span>7 días</span></label>
+                <label class="chip-btn"><input type="radio" name="term" value="10"><span>10 días</span></label>
+                <label class="chip-btn"><input type="radio" name="term" value="15"><span>15 días</span></label>
+              </div>
+            </fieldset>
+
+            <div class="input-group">
+              <label for="loan-reason">Motivo del préstamo</label>
+              <input id="loan-reason" name="reason" type="text" maxlength="60" autocomplete="off" autocapitalize="sentences" placeholder="Ej. Fotocopias e impresiones" aria-describedby="reason-help reason-counter" required>
+              <div class="reason-suggestions" role="group" aria-label="Motivos frecuentes">
+                <button class="chip-btn chip-btn--sm" type="button" data-reason="Fotocopias e impresiones">Fotocopias</button>
+                <button class="chip-btn chip-btn--sm" type="button" data-reason="Materiales de laboratorio">Laboratorio</button>
+                <button class="chip-btn chip-btn--sm" type="button" data-reason="Transporte">Transporte</button>
+                <button class="chip-btn chip-btn--sm" type="button" data-reason="Alimentación">Alimentación</button>
+                <button class="chip-btn chip-btn--sm" type="button" data-reason="Libros y materiales">Libros</button>
+                <button class="chip-btn chip-btn--sm" type="button" data-reason="Otro gasto educativo">Otro</button>
+              </div>
+              <div class="field-meta">
+                <span id="reason-help" class="field-help">Solo texto. No se admiten etiquetas HTML.</span>
+                <span id="reason-counter" class="field-counter">0 / 60</span>
+              </div>
+            </div>
+
+            <article class="card summary-card" aria-label="Resumen del crédito">
+              <div class="summary-row">
+                <span>Capital solicitado</span>
+                <b id="repayment-principal">$10.000</b>
+              </div>
+              <div class="summary-row">
+                <span>Tarifa Fondo de Cobertura</span>
+                <b id="repayment-fee">$1.000</b>
+              </div>
+              <div class="summary-row summary-row--total">
+                <span>Total a pagar</span>
+                <b id="repayment-total">$11.000</b>
+              </div>
+            </article>
+
+            <p class="form-note">La tarifa de $1.000 COP se aporta al Fondo de Cobertura cuando un compañero financia tu solicitud.</p>
+
+            <p class="form-error hidden" id="loan-error" role="alert"></p>
+            <button class="btn-primary" id="loan-submit" type="submit">Confirmar solicitud</button>
+          </form>
+        </section>
+
+        <section class="screen hidden" id="screen-fund" data-screen="fund" aria-labelledby="fund-title" hidden>
+          <header class="screen-head">
+            <p class="eyebrow">Comunidad UniPool</p>
+            <h1 class="screen-title" id="fund-title">Fondo común</h1>
+            <p class="muted screen-lead">Cada crédito aporta $1.000 COP al Fondo de Cobertura.</p>
+          </header>
+
+          <article class="card fund-card">
+            <span class="fund-label">Fondo de Cobertura acumulado</span>
+            <b class="fund-balance" id="fund-balance">$0</b>
+            <span class="fund-caption">Se actualiza con cada solicitud financiada.</span>
+          </article>
+
+          <h2 class="section-title">Solicitudes para financiar</h2>
+          <p class="form-note">Aquí solo ves solicitudes de otros estudiantes. Las tuyas están en Inicio, en Mis solicitudes pendientes.</p>
+          <div id="request-list" class="request-list"></div>
+        </section>
+
+        <section class="screen hidden" id="screen-profile" data-screen="profile" aria-labelledby="profile-title" hidden>
+          <header class="screen-head">
+            <p class="eyebrow">Tu cuenta</p>
+            <h1 class="screen-title" id="profile-title">Mi perfil</h1>
+          </header>
+
+          <article class="card profile-card">
+            <div id="profile-avatar" class="profile-avatar" aria-hidden="true"></div>
+            <div class="profile-info">
+              <h2 id="profile-name" class="profile-name"></h2>
+              <p id="profile-email" class="profile-email"></p>
+              <p class="profile-wallet-line">Billetera demo: <b id="profile-wallet"></b></p>
+            </div>
+          </article>
+
+          <article class="card score-card">
+            <div class="score-card-head">
+              <span class="score-card-label">Score estudiantil</span>
+              <b class="profile-score-value"><span id="profile-score"></span> / 5.0
+                <svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/></svg>
+              </b>
+            </div>
+            <p class="score-card-note">Inicia en 4.5. Los pagos puntuales mejoran tu score.</p>
+          </article>
+
+          <article class="card wallet-tools">
+            <h2>Fondeo y retiro</h2>
+            <p class="muted card-note">Flujos de demostración. No conectan con PSE, Nequi ni una entidad financiera.</p>
+
+            <form id="cash-in-form" class="wallet-form" novalidate>
+              <div class="input-group">
+                <label for="cash-in-amount">Valor de recarga (COP)</label>
+                <input id="cash-in-amount" name="amount" type="number" inputmode="numeric" min="10000" max="1000000" step="1000" value="10000" autocomplete="off" required>
+              </div>
+              <div class="input-group">
+                <label for="cash-in-rail">Canal simulado</label>
+                <select id="cash-in-rail" name="rail" required>
+                  <option value="PSE">PSE (simulación)</option>
+                  <option value="Nequi">Nequi (simulación)</option>
+                </select>
+              </div>
+              <p class="form-error hidden" id="cash-in-error" role="alert"></p>
+              <button class="btn-primary" type="submit">Simular recarga</button>
+            </form>
+
+            <form id="cash-out-form" class="wallet-form" novalidate>
+              <div class="input-group">
+                <label for="cash-out-amount">Valor de retiro (COP)</label>
+                <input id="cash-out-amount" name="amount" type="number" inputmode="numeric" min="10000" max="1000000" step="1000" value="10000" autocomplete="off" required>
+              </div>
+              <p class="form-error hidden" id="cash-out-error" role="alert"></p>
+              <button class="btn-primary" type="submit">Simular retiro</button>
+            </form>
+          </article>
+
+          <article class="card ledger-card">
+            <h2>Libro de movimientos</h2>
+            <p class="muted card-note">Asientos locales de doble entrada para esta demostración.</p>
+            <div id="wallet-ledger" class="ledger-list" aria-live="polite"></div>
+          </article>
+
+          <article class="card loan-status-card">
+            <h2>Estado de mis créditos</h2>
+            <p class="muted card-note">Los vencimientos se evalúan al abrir o reactivar esta pestaña.</p>
+            <div id="loan-status-list" class="ledger-list"></div>
+          </article>
+
+          <button class="btn-secondary btn-danger" type="button" data-action="logout">Cerrar sesión</button>
+          <button class="btn-secondary btn-reset" type="button" data-action="reset-demo">Restablecer datos de demostración</button>
+        </section>
+
+      </div>
+    </main>
+
+    <nav class="bottom-nav hidden" aria-label="Navegación principal">
+      <button type="button" class="nav-btn active" data-navigate="home">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+        <span>Inicio</span>
+      </button>
+      <button type="button" class="nav-btn" data-navigate="loan">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18m5-14H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span>Préstamo</span>
+      </button>
+      <button type="button" class="nav-btn" data-navigate="fund">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c.5-3 2.5-5 6-5s5.5 2 6 5M16 5a3 3 0 0 1 0 6m2 4c1.8.7 2.8 2.3 3 5"/></svg>
+        <span>Fondo</span>
+      </button>
+      <button type="button" class="nav-btn" data-navigate="profile">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3-7 8-7s8 3 8 7"/></svg>
+        <span>Perfil</span>
+      </button>
+    </nav>
+
+    <div id="toast-region" class="toast-region" role="region" aria-label="Notificaciones" aria-live="polite" aria-relevant="additions"></div>
+
+    <template id="toast-template">
+      <div class="toast" role="status">
+        <span class="toast-icon" aria-hidden="true">
+          <svg class="icon-success" viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>
+          <svg class="icon-error" viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m9.5 9.5 5 5m0-5-5 5"/></svg>
+          <svg class="icon-warning" viewBox="0 0 24 24" focusable="false"><path d="M12 4 3 20h18z"/><path d="M12 10v4m0 3h.01"/></svg>
+          <svg class="icon-info" viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
+        </span>
+        <p class="toast-message"></p>
+        <button class="toast-close" type="button" aria-label="Cerrar notificación">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m7 7 10 10m0-10L7 17"/></svg>
+        </button>
+      </div>
+    </template>
+
+    <dialog id="confirm-dialog" class="confirm-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description">
+      <div class="dialog-body">
+        <p id="dialog-eyebrow" class="dialog-eyebrow"></p>
+        <h2 id="dialog-title" class="dialog-title"></h2>
+        <p id="dialog-description" class="dialog-description"></p>
+
+        <div id="dialog-details" class="dialog-details"></div>
+
+        <p id="dialog-error" class="form-error hidden" role="alert"></p>
+
+        <div class="dialog-actions">
+          <button id="dialog-cancel" class="btn-secondary" type="button">Volver</button>
+          <button id="dialog-confirm" class="btn-primary" type="button">Confirmar</button>
+        </div>
+      </div>
+    </dialog>
+
+  </div>
+</body>
+</html>
